@@ -50,4 +50,13 @@ public class ElevatorController implements IElevatorController {
 		}
 		return elevatorsClone;
 	}
+
+	@Override
+	public void run() {
+		while(!Thread.interrupted()){
+			for(Elevator e : elevators){
+				e.move();
+			}
+		}	
+	}
 }

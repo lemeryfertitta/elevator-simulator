@@ -1,6 +1,6 @@
 package emery_fertitta.luke.project;
 
-public interface IElevatorController{
+public interface IElevatorController extends Runnable{
     /**
      * This is a blocking call that returns an Elevator instance.
      * 
@@ -11,4 +11,10 @@ public interface IElevatorController{
      * @throws InvalidRequestException when fromFloor < minimum floor, or > maximum floor, or direction is invalid.
      */
     public IElevator callElevator(int fromFloor, int direction) throws InvalidRequestException;
+    
+    @Override
+    /**
+     * Begin the simulation. This will allow the elevators to move.
+     */
+    public void run();
 }

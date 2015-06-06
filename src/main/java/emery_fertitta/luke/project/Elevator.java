@@ -87,6 +87,32 @@ public class Elevator implements IElevator, Cloneable {
 				}
 			}
 		}
+		else{
+			// Find the nearest unserviced request, if any,
+			// and head in that direction.
+			int upDistance = 0;
+			for(int i = (currentFloor + 1); i < destinations.length; i++){
+				if(destinations[i]){
+					upDistance = i - currentFloor;
+					break;
+				}
+			}
+			int downDistance = 0;
+			for(int i = (currentFloor - 1); i >= 0; i--){
+				if(destinations[i]){
+					downDistance = currentFloor - i;
+					break;
+				}
+			}
+			if((downDistance != 0) || (upDistance != 0)){
+				if((downDistance != 0) && (downDistance < upDistance)){
+					direction = Direction.DOWN;
+				}
+				else{
+					direction = Direction.UP;
+				}
+			}
+		}
 		destinations[currentFloor] = false;
 	}
 

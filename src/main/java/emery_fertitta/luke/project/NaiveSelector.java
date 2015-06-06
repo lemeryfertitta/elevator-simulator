@@ -1,5 +1,9 @@
 package emery_fertitta.luke.project;
 
+// TODO: Temporary class. Consider removal after better implementations.
+/**
+ * Always selects the first elevator.
+ */
 public class NaiveSelector implements IElevatorSelector {
 
 	@Override
