@@ -17,11 +17,14 @@ public class TestElevatorController {
 	public void testBasicElevatorUsage() {
 		int numFloors = 2;
 		int numElevators = 1;
+		int minFloor = 0;
 		int fromFloor = 0;
 		int direction = 1;
 		int toFloor = 1;
-		
-		IElevatorController controller = new ElevatorController(numFloors, numElevators);
+
+		IElevatorSelector selector = new NaiveSelector();
+		IElevatorController controller = new ElevatorController(
+				selector, numFloors, numElevators, minFloor);
 		IElevator elevator;
 		
 		// Try to make an invalid elevator request.
