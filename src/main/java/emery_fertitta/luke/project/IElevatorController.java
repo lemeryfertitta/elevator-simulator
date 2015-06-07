@@ -21,4 +21,10 @@ public interface IElevatorController{
      * Force the elevators to stop moving.
      */
     public void stopElevators();
+    
+    /**
+	 * For profiling.
+	 * @return The count of floor switches across all elevators.
+	 */
+	public int getTotalElevatorMoves();
 }

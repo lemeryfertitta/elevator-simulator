@@ -4,6 +4,6 @@ package emery_fertitta.luke.project;
 public class InvalidStateException extends Exception {
 	@Override
 	public String getMessage() {
-		return "Request made an non-busy elevator";
+		return "Request made on unoccupied elevator";
 	}
 }

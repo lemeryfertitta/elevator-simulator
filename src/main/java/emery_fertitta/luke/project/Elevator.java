@@ -21,6 +21,12 @@ public class Elevator implements IElevator, Runnable, Cloneable {
 		currentFloor = startFloor;
 		
 		users = new ArrayList<IElevatorUser>();
+		
+		movesMade = 0;
+	}
+	
+	public int getMovesMade(){
+		return movesMade;
 	}
 	
 	public synchronized Direction getDirection(){
@@ -60,7 +66,7 @@ public class Elevator implements IElevator, Runnable, Cloneable {
 	}
 
 	@Override
-	public synchronized boolean isBusy() {
+	public synchronized boolean isOccupied() {
 		return !users.isEmpty();
 	}
 
@@ -131,9 +137,11 @@ public class Elevator implements IElevator, Runnable, Cloneable {
 			// Move the elevator
 			if(direction == Direction.UP){
 				currentFloor++;
+				movesMade++;
 			}
 			else if(direction == Direction.DOWN){
 				currentFloor--;
+				movesMade++;
 			}
 			destinations[currentFloor] = false;
 			notifyUsers();
@@ -156,10 +164,16 @@ public class Elevator implements IElevator, Runnable, Cloneable {
 	 * below the elevator's current floor. </p>
 	 */
 	private int minDestination;
-	private ArrayList<IElevatorUser> users;
 	private int currentFloor;
+	private ArrayList<IElevatorUser> users;
 	private boolean[] destinations;
 	private Direction direction;
+	
+	/**
+	 * Number of times the elevator has switched floors. For profiling.
+	 */
+	private int movesMade;
+	
 	@Override
 	public synchronized void notifyUsers() {
 		if(!users.isEmpty()){

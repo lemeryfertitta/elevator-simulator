@@ -64,6 +64,14 @@ public class ElevatorController implements IElevatorController {
 			t.interrupt();
 		}
 	}
+
+	public int getTotalElevatorMoves(){
+		int total = 0;
+		for(Elevator e : elevators){
+			total += e.getMovesMade();
+		}
+		return total;
+	}
 	
 	private int minFloor;
 	private int maxFloor;
