@@ -1,37 +1,36 @@
 package emery_fertitta.luke.project;
 
 public class ElevatorController implements IElevatorController {
-	private int minFloor;
-	private int maxFloor;
-	private IElevatorSelector selector;
-	private Elevator[] elevators;
 
-	public ElevatorController(IElevatorSelector selector, int numFloors, 
-			int numElevators, int minFloor){
-		this.minFloor = minFloor;
-		this.maxFloor = minFloor + numFloors;
+
+	public ElevatorController(IElevatorSelector selector, int numFloors,
+			int numElevators){
+		this.minFloor = Elevator.MIN_FLOOR;
+		this.maxFloor = Elevator.MIN_FLOOR + numFloors;
 		this.selector = selector;
 		this.elevators = new Elevator[numElevators];
+		this.elevatorThreads = new Thread[numElevators];
 		for(int i = 0; i < numElevators; i++){
 			elevators[i] = new Elevator(numFloors, minFloor);
+			elevatorThreads[i] = new Thread(elevators[i]);
 		}
 	}
 
 	@Override
 	public IElevator callElevator(int fromFloor, int direction)
 			throws InvalidRequestException {
-		
+
 		// Verify that fromFloor is a valid floor
 		if((fromFloor < minFloor) || (fromFloor > maxFloor)){
 			throw new InvalidRequestException();
 		}
-		
+
 		// Verify that the desired direction is valid
 		if(((fromFloor == minFloor) && (direction <= 0)) || 
 				((fromFloor == maxFloor) && (direction > 0))){
 			throw new InvalidRequestException();
 		}
-		
+
 		int selectedIndex =  selector.selectElevator(cloneElevators());
 		elevators[selectedIndex].addDestination(fromFloor);
 		return elevators[selectedIndex];
@@ -51,12 +50,24 @@ public class ElevatorController implements IElevatorController {
 		return elevatorsClone;
 	}
 
+
 	@Override
-	public void run() {
-		while(!Thread.interrupted()){
-			for(Elevator e : elevators){
-				e.move();
-			}
-		}	
+	public void startElevators() {
+		for(Thread t : elevatorThreads){
+			t.start();
+		}
 	}
+
+	@Override
+	public void stopElevators() {
+		for(Thread t : elevatorThreads){
+			t.interrupt();
+		}
+	}
+	
+	private int minFloor;
+	private int maxFloor;
+	private IElevatorSelector selector;
+	private Elevator[] elevators;
+	private Thread[] elevatorThreads;
 }

@@ -8,16 +8,20 @@ public interface IElevator {
      * 
      * Bonus: this method should throw InvalidStateException if the Elevator is NOT busy.
      */
-    void requestFloor(int floor) throws InvalidStateException;
+    public void requestFloor(int floor) throws InvalidStateException;
     
     /**
      * Returns the internal state of the Elevator.
      */
-    boolean isBusy();
+    public boolean isBusy();
     
     /**
      * Returns the floor where the Elevator is now.
      */
-    int currentFloor();
+    public int getCurrentFloor();
+    
+    public void notifyUsers();
+    public void enterElevator(IElevatorUser user);
+    public void leaveElevator(IElevatorUser user);
     
 }

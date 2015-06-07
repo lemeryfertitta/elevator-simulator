@@ -18,19 +18,17 @@ public class TestElevatorController {
 		// Parameters
 		int numFloors = 2;
 		int numElevators = 1;
-		int minFloor = 0;
 		int fromFloor = 0;
 		int direction = 1;
 		int toFloor = 1;
 		IElevatorSelector selector = new NaiveSelector();
 		
-		// Create and start the controller thread.
-		IElevatorController controller = new ElevatorController(
-				selector, numFloors, numElevators, minFloor);
-		Thread t = new Thread(controller);
-		t.start();
+
+		IElevatorController controller = new ElevatorController(selector, 
+				numFloors, numElevators);
 		
-		// Attempt to make requests for the single elevator.
+		controller.startElevators();
+		
 		IElevator elevator;
 		
 		// Try an invalid elevator request.
@@ -48,7 +46,7 @@ public class TestElevatorController {
 			fail("An invalid request exception was thrown upon a valid request.");
 			return;
 		}
-		assertEquals(elevator.currentFloor(), fromFloor);
+		assertEquals(elevator.getCurrentFloor(), fromFloor);
 
 		// Try to make a valid floor request.
 		try {
@@ -60,11 +58,50 @@ public class TestElevatorController {
 
 		// Wait for the elevator to reach its destination.
 		// The elevator should be busy while its not at its destination.
-		while(elevator.currentFloor() != toFloor){
+		while(elevator.getCurrentFloor() != toFloor){
 			// TODO: Uncomment once busy is properly understood.
 //			assertEquals(elevator.isBusy(), true);
 		}
-		assertEquals(elevator.currentFloor(), toFloor);
+		assertEquals(elevator.getCurrentFloor(), toFloor);
+		controller.stopElevators();
+	}
+	
+	@Test
+	public void testManyElevatorsAndFloors() {
+		int numFloors = 100;
+		int numElevators = 20;
+		int fromFloor = 0;
+		int direction = 1;
+		int toFloor = 1;
+		int numRequests = 100;
+		IElevatorSelector selector = new RandomSelector();
+		
+		IElevatorController controller = new ElevatorController(selector, numFloors, numElevators);
+		PersonSimulator[] people = new PersonSimulator[numRequests];
+		Thread[] peopleThreads = new Thread[numRequests];
+		
+		controller.startElevators();
+		
+		for(int i = 0; i < numRequests; i++){
+			people[i] = new PersonSimulator(numFloors, controller);
+			peopleThreads[i] = new Thread(people[i]);
+			peopleThreads[i].start();
+		}
+		
+		try {
+			Thread.sleep(5000);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		for(int i = 0; i < numRequests; i++){
+			System.out.println(people[i].isServiced());
+			System.out.println(people[i].getServiceTime());
+		}
+		
+		
+		controller.startElevators();
 	}
 	
 }
