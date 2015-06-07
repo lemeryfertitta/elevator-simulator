@@ -2,6 +2,8 @@ package emery_fertitta.luke.project;
 
 import static org.junit.Assert.*;
 
+import java.util.Random;
+
 import org.junit.Test;
 
 public class TestElevatorController {
@@ -75,12 +77,9 @@ public class TestElevatorController {
 	@Test
 	public void testManyElevatorsAndFloors() {
 		int numFloors = 100;
-		int numElevators = 2;
-		int fromFloor = 0;
-		int direction = 1;
-		int toFloor = 1;
-		int numRequests = 100;
-		int waitTimeMilli = 5000;
+		int numElevators = 10;
+		int numRequests = 100; // Number of simultaneous requests
+		int waitTimeMilli = 5000; // How long to wait for requests to be fulfilled.
 		IElevatorSelector selector = new RandomSelector();
 		
 		IElevatorController controller = new ElevatorController(selector, numFloors, numElevators);
@@ -93,6 +92,12 @@ public class TestElevatorController {
 			people[i] = new PersonSimulator(numFloors, controller);
 			peopleThreads[i] = new Thread(people[i]);
 			peopleThreads[i].start();
+			try {
+				Thread.sleep(new Random().nextInt(50));
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 		
 		try {

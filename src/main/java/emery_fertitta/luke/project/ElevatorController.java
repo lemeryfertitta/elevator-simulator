@@ -31,23 +31,18 @@ public class ElevatorController implements IElevatorController {
 			throw new InvalidRequestException();
 		}
 
-		int selectedIndex =  selector.selectElevator(cloneElevators());
+		int selectedIndex =  selector.selectElevator(fromFloor, getElevatorStates());
 		elevators[selectedIndex].addDestination(fromFloor);
 		return elevators[selectedIndex];
 	}
 
 	
-	private Elevator[] cloneElevators(){
-		Elevator[] elevatorsClone = new Elevator[elevators.length];
+	private ElevatorState[] getElevatorStates(){
+		ElevatorState[] states = new ElevatorState[elevators.length];
 		for(int i = 0; i < elevators.length; i++){
-			try {
-				elevatorsClone[i] = (Elevator) elevators[i].clone();
-			} catch (CloneNotSupportedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+			states[i] = elevators[i].getState();
 		}
-		return elevatorsClone;
+		return states;
 	}
 
 

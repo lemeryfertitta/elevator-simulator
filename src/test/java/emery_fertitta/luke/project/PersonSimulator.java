@@ -24,26 +24,36 @@ public class PersonSimulator implements Runnable, IElevatorUser {
 		return serviced;
 	}
 	
+	/**
+	 * @return The amount of time since the elevator was initially called.
+	 */
 	public double getServiceTime(){
 		return serviceTime;
 	}
-
+	
+	/**
+	 * Call an elevator, enter it, and request a floor.
+	 */
 	@Override
 	public void run() {
 		startTimeNano = System.nanoTime();
 		try {
+			//TODO: Can occasionally generate a bad request like 0, 0
 			elevator = controller.callElevator(fromFloor, toFloor - fromFloor);
 		} catch (InvalidRequestException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 			return;
 		}
+		elevator.enterElevator(this);
+		
 		try {
-			elevator.enterElevator(this);
 			elevator.requestFloor(toFloor);		
 		} catch (InvalidStateException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			// TODO: In the gap between enterElevator() and requestFloor(), 
+			// the elevator might reach the desired floor
+			// and the user may leave the elevator, emptying it.
+			// This then causes this exception.
 			return;
 		}
 	}

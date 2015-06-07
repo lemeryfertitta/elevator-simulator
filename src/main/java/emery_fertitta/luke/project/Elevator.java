@@ -1,9 +1,19 @@
 package emery_fertitta.luke.project;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
-public class Elevator implements IElevator, Runnable, Cloneable {
+public class Elevator implements IElevator, Runnable {
+	/**
+	 * Lowest possible floor.
+	 */
 	public static final int MIN_FLOOR = 0;
+	
+	/**
+	 * Delay time in milliseconds to simulate time for an elevator to move.
+	 */
+	public static final int MOVE_TIME = 10;
+	
 	public enum Direction { UP, DOWN, IDLE };
 	
 	public Elevator(int numFloors, int startFloor) {
@@ -39,11 +49,37 @@ public class Elevator implements IElevator, Runnable, Cloneable {
 	}
 	
 	@Override
+	public synchronized boolean isOccupied() {
+		return !users.isEmpty();
+	}
+	
+	@Override
 	public synchronized void requestFloor(int floor) throws InvalidStateException {
 		if(users.isEmpty()){
 			throw new InvalidStateException();
 		}
 		addDestination(floor);
+	}
+	
+	@Override
+	public synchronized void notifyUsers() {
+		if(!users.isEmpty()){
+			// Create an array so that we can modify the users ArrayList concurrently.
+			IElevatorUser[] userArray = users.toArray(new IElevatorUser[users.size()]);
+			for(IElevatorUser u : userArray){
+				u.update(currentFloor);
+			}
+		}
+	}
+
+	@Override
+	public synchronized void enterElevator(IElevatorUser user) {
+		users.add(user);
+	}
+
+	@Override
+	public synchronized void leaveElevator(IElevatorUser user) {
+		users.remove(user);
 	}
 	
 	/**
@@ -65,16 +101,7 @@ public class Elevator implements IElevator, Runnable, Cloneable {
 		}
 	}
 
-	@Override
-	public synchronized boolean isOccupied() {
-		return !users.isEmpty();
-	}
-
-
-	@Override
-	public synchronized Object clone() throws CloneNotSupportedException {
-	    return super.clone();
-	}
+	
 	
 	/**
 	 * <p> Continuously moves the elevator in the current direction of travel,
@@ -94,6 +121,7 @@ public class Elevator implements IElevator, Runnable, Cloneable {
 	@Override
 	public void run(){
 		while(!Thread.interrupted()){
+			
 			// Switch directions if necessary
 			if((direction == Direction.UP) && (maxDestination == currentFloor)){
 				maxDestination = MIN_FLOOR - 1;
@@ -145,10 +173,21 @@ public class Elevator implements IElevator, Runnable, Cloneable {
 			}
 			destinations[currentFloor] = false;
 			notifyUsers();
+			
+			try {
+				Thread.sleep(MOVE_TIME);
+			} catch (InterruptedException e) {
+				return;
+			}
 		}
 		
 	}
-		
+
+	public ElevatorState getState(){
+		return new ElevatorState(currentFloor, users.size(),
+				direction, Arrays.copyOf(destinations, destinations.length));
+	}
+	
 	/**
 	 * <p> The number of the highest unserviced floor. </p>
 	 * 
@@ -157,6 +196,7 @@ public class Elevator implements IElevator, Runnable, Cloneable {
 	 */
 	private int maxDestination;
 	
+
 	/**
 	 * <p> The number of the lowest unserviced floor. </p>
 	 * 
@@ -174,25 +214,6 @@ public class Elevator implements IElevator, Runnable, Cloneable {
 	 */
 	private int movesMade;
 	
-	@Override
-	public synchronized void notifyUsers() {
-		if(!users.isEmpty()){
-			// Create an array so that we can modify the users ArrayList concurrently.
-			IElevatorUser[] userArray = users.toArray(new IElevatorUser[users.size()]);
-			for(IElevatorUser u : userArray){
-				u.update(currentFloor);
-			}
-		}
-	}
 
-	@Override
-	public synchronized void enterElevator(IElevatorUser user) {
-		users.add(user);
-	}
-
-	@Override
-	public synchronized void leaveElevator(IElevatorUser user) {
-		users.remove(user);
-	}
 
 }
