@@ -30,7 +30,14 @@ public interface IElevator {
     public void notifyUsers();
     
     /**
-     * Add the user to the list of users occupying the elevator.
+     * Adds a user to the list of users waiting to be picked up by the elevator.
+     * @param user
+     */
+    public void addRequester(IElevatorUser user);
+    
+    /**
+     * Add the user to the list of users occupying the elevator, and removes them
+     * from the list of users requesting the elevator.
      * @param user A person who called the elevator.
      */
     public void enterElevator(int fromFloor, IElevatorUser user) throws WrongFloorException;

@@ -25,7 +25,8 @@ public class Elevator implements IElevator, Runnable {
 		direction = Direction.IDLE;
 		currentFloor = startFloor;
 		
-		users = new ArrayList<IElevatorUser>();
+		occupants = new ArrayList<IElevatorUser>();
+		requesters = new ArrayList<IElevatorUser>();
 		
 		this.moveDelay = moveDelay;
 		movesMade = 0;
@@ -35,7 +36,7 @@ public class Elevator implements IElevator, Runnable {
 	 * @return the basic state information of the elevator at time of calling.
 	 */
 	public synchronized ElevatorState getState(){
-		return new ElevatorState(currentFloor, users.size(),
+		return new ElevatorState(currentFloor, occupants.size(),
 				direction, Arrays.copyOf(destinations, destinations.length));
 	}
 	
@@ -54,12 +55,12 @@ public class Elevator implements IElevator, Runnable {
 	
 	@Override
 	public synchronized boolean isOccupied() {
-		return !users.isEmpty();
+		return !occupants.isEmpty();
 	}
 	
 	@Override
 	public synchronized void requestFloor(int floor) throws InvalidStateException {
-		if(users.isEmpty()){
+		if(occupants.isEmpty()){
 			throw new InvalidStateException();
 		}
 		addDestination(floor);
@@ -67,13 +68,25 @@ public class Elevator implements IElevator, Runnable {
 	
 	@Override
 	public synchronized void notifyUsers() {
-		if(!users.isEmpty()){
+		if(!occupants.isEmpty()){
 			// Create an array so that we can modify the users ArrayList concurrently.
-			IElevatorUser[] userArray = users.toArray(new IElevatorUser[users.size()]);
+			IElevatorUser[] userArray = occupants.toArray(new IElevatorUser[occupants.size()]);
 			for(IElevatorUser u : userArray){
-				u.update(currentFloor);
+				u.update(this);
 			}
 		}
+		if(!requesters.isEmpty()){
+			// Create an array so that we can modify the users ArrayList concurrently.
+			IElevatorUser[] userArray = requesters.toArray(new IElevatorUser[requesters.size()]);
+			for(IElevatorUser u : userArray){
+				u.update(this);
+			}
+		}
+	}
+	
+	@Override
+	public synchronized void addRequester(IElevatorUser user){
+		requesters.add(user);
 	}
 
 	@Override
@@ -81,7 +94,9 @@ public class Elevator implements IElevator, Runnable {
 		if(currentFloor != fromFloor){
 			throw new WrongFloorException();
 		}
-		users.add(user);
+		requesters.remove(user);
+		occupants.add(user);
+		System.out.println(occupants.size());
 	}
 
 	@Override
@@ -89,7 +104,7 @@ public class Elevator implements IElevator, Runnable {
 		if(currentFloor != toFloor){
 			throw new WrongFloorException();
 		}
-		users.remove(user);
+		occupants.remove(user);
 	}
 	
 	/**
@@ -228,7 +243,8 @@ public class Elevator implements IElevator, Runnable {
 	 */
 	private int moveDelay;
 	private int currentFloor;
-	private ArrayList<IElevatorUser> users;
+	private ArrayList<IElevatorUser> occupants;
+	private ArrayList<IElevatorUser> requesters;
 	private boolean[] destinations;
 	private Direction direction;
 	

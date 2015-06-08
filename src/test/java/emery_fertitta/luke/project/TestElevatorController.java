@@ -20,69 +20,24 @@ public class TestElevatorController {
 		// Parameters
 		int numFloors = 2;
 		int numElevators = 1;
-		int fromFloor = 0;
-		int direction = 1;
-		int toFloor = 1;
 		int elevatorMoveDelay = 0; // Number of milliseconds to delay an elevator between switching floors.
 		IElevatorSelector selector = new NaiveSelector();
 		
 		IElevatorController controller = new ElevatorController(selector, 
 				numFloors, numElevators, elevatorMoveDelay);
-		SimpleUser person = new SimpleUser(toFloor);
 		
 		controller.startElevators();
-		IElevator elevator;
+		RandomUser person = new RandomUser(numFloors, controller);
 		
-		// Try an invalid elevator request.
-		try{
-			controller.callElevator(fromFloor, -direction);
-			fail("Exception was not thrown upon an invalid request");
-		}
-		catch (InvalidRequestException e){
-		}
-
-		// Try a valid elevator request.
-		try {
-			elevator = controller.callElevator(fromFloor, direction);
-		} catch (InvalidRequestException e) {
-			fail("An invalid request exception was thrown upon a valid request.");
-			return;
-		}
-		assertEquals(fromFloor, elevator.getCurrentFloor());
-		
-		// Try to make an invalid floor request.
-		try {
-			elevator.requestFloor(toFloor);
-			fail("An invalid state exception wasn't thrown.");
-		} catch (InvalidStateException e) {
-		}
-		
-		try {
-			elevator.enterElevator(fromFloor, person);
-		} catch (WrongFloorException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
-		
-		// Try to make a valid floor request.
-		try {
-			elevator.requestFloor(toFloor);
-		} catch (InvalidStateException e) {
-			fail("An invalid state exception was thrown.");
-		}
-
 		while(!person.isServiced()){
-			if(!elevator.isOccupied()){
-				fail("Elevator in use should still be occupied");
+			try {
+				Thread.sleep(10);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
 		}
-		try {
-			elevator.leaveElevator(toFloor, person);
-		} catch (WrongFloorException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		assertEquals(elevator.isOccupied(), false);
+		
 		controller.stopElevators();
 	}
 	
@@ -95,20 +50,17 @@ public class TestElevatorController {
 		int waitTime = 10000; // Milliseconds to wait for requests to be fulfilled.
 		int maxRequestDelay = 10; // Max number of milliseconds to delay between requests.
 		int elevatorMoveDelay = 10; // Number of milliseconds to delay an elevator between switching floors.
-		IElevatorSelector selector = new NearestSelector(); // Selection algorithm to test.
+		IElevatorSelector selector = new NaiveSelector(); // Selection algorithm to test.
 		
 		IElevatorController controller = new ElevatorController(
 				selector, numFloors, numElevators, elevatorMoveDelay);
-		PersonSimulator[] people = new PersonSimulator[numRequests];
-		Thread[] peopleThreads = new Thread[numRequests];
+		RandomUser[] people = new RandomUser[numRequests];
 		
 		controller.startElevators();
 		
-		// Spawn request threads with a random delay between 0 and maxRequestDelay.
+		// Spawn requests with a random delay between 0 and maxRequestDelay.
 		for(int i = 0; i < numRequests; i++){
-			people[i] = new PersonSimulator(numFloors, controller);
-			peopleThreads[i] = new Thread(people[i]);
-			peopleThreads[i].start();
+			people[i] = new RandomUser(numFloors, controller);
 			try {
 				Thread.sleep(new Random().nextInt(maxRequestDelay));
 			} catch (InterruptedException e) {
@@ -125,14 +77,19 @@ public class TestElevatorController {
 		
 		controller.stopElevators();
 		printProfile(controller, people);
-}
+	}
 	
-	public void printProfile(IElevatorController controller, PersonSimulator[] people){
+	/**
+	 * Provide some basic information for a test that has been run.
+	 * @param controller The controller used for the test run.
+	 * @param people The array of people used for the test run.
+	 */
+	public void printProfile(IElevatorController controller, RandomUser[] people){
 		int elevatorMoves = controller.getTotalElevatorMoves();
 		double serviceTimeMax = 0;
 		double serviceTimeTotal = 0;
 		int numServiced = 0;
-		for(PersonSimulator p : people){
+		for(RandomUser p : people){
 			if(p.isServiced()){
 				numServiced++;
 				double serviceTime = p.getServiceTime();

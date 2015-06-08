@@ -1,13 +1,20 @@
 package emery_fertitta.luke.project;
 
+import java.util.ArrayList;
+
 public class ElevatorController implements IElevatorController {
 
 
+	@SuppressWarnings("unchecked")
 	public ElevatorController(IElevatorSelector selector, int numFloors,
 			int numElevators, int moveDelay){
 		this.minFloor = Elevator.MIN_FLOOR;
 		this.maxFloor = Elevator.MIN_FLOOR + numFloors;
 		this.selector = selector;
+		this.waitingUsers = (ArrayList<IElevatorUser>[]) new ArrayList[numFloors];
+		for(int i = 0; i < numFloors; i++){
+			waitingUsers[i] = new ArrayList<IElevatorUser>();
+		}
 		this.elevators = new Elevator[numElevators];
 		this.elevatorThreads = new Thread[numElevators];
 		for(int i = 0; i < numElevators; i++){
@@ -17,7 +24,7 @@ public class ElevatorController implements IElevatorController {
 	}
 
 	@Override
-	public IElevator callElevator(int fromFloor, int direction)
+	public void callElevator(IElevatorUser user, int fromFloor, int direction)
 			throws InvalidRequestException {
 
 		// Verify that fromFloor is a valid floor
@@ -40,11 +47,9 @@ public class ElevatorController implements IElevatorController {
 		
 		// Send the elevator to that floor.
 		elevators[selectedIndex].addDestination(fromFloor);
-		// TODO: Replace spin wait.
-		while(elevators[selectedIndex].getCurrentFloor() != fromFloor){
-			
-		}
-		return elevators[selectedIndex];
+		
+		// Add the user to the elevator so they can be notified.
+		elevators[selectedIndex].addRequester(user);
 	}
 
 	@Override
@@ -72,6 +77,7 @@ public class ElevatorController implements IElevatorController {
 	private int minFloor;
 	private int maxFloor;
 	private IElevatorSelector selector;
+	private ArrayList<IElevatorUser>[] waitingUsers;
 	private Elevator[] elevators;
 	private Thread[] elevatorThreads;
 }
