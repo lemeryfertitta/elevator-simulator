@@ -10,7 +10,7 @@ package emery_fertitta.luke.project;
 public class NearestSelector implements IElevatorSelector {
 
 	@Override
-	public int selectElevator(int fromFloor, ElevatorState[] elevators) {
+	public int selectElevator(int fromFloor, int direction, ElevatorState[] elevators) {
 		int minDistance = Integer.MAX_VALUE;
 		int minIndex = 0;
 		for(int i = 0; i < elevators.length; i++){
@@ -20,15 +20,15 @@ public class NearestSelector implements IElevatorSelector {
 				// This elevator is already at the desired floor
 				return i;
 			}
-			Elevator.Direction direction = elevators[i].getDirection();
-			if(direction == Elevator.Direction.UP){
+			Elevator.Direction elevatorDirection = elevators[i].getDirection();
+			if(elevatorDirection == Elevator.Direction.UP){
 				distance = fromFloor - elevatorFloor;
 				if(distance < 0){
 					// Floor is below and elevator is going up
 					distance = -distance + 2*(elevators[i].getDestinations().length - elevatorFloor);
 				}
 			}
-			else if(direction == Elevator.Direction.DOWN){
+			else if(elevatorDirection == Elevator.Direction.DOWN){
 				distance = elevatorFloor - fromFloor;
 				if(distance < 0){
 					// Floor is above and going down.

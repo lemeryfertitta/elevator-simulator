@@ -1,5 +1,10 @@
 package emery_fertitta.luke.project;
 
+/**
+ * A basic elevator user implementation to run the simplest of tests.
+ * This user only checks to see if it reaches its desired floor,
+ * but will not call the elevator on its own.
+ */
 public class SimpleUser implements IElevatorUser {
 	
 	public SimpleUser(int toFloor) {

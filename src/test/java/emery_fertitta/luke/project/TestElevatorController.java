@@ -23,12 +23,14 @@ public class TestElevatorController {
 		int fromFloor = 0;
 		int direction = 1;
 		int toFloor = 1;
+		int elevatorMoveDelay = 0; // Number of milliseconds to delay an elevator between switching floors.
 		IElevatorSelector selector = new NaiveSelector();
-		IElevatorController controller = new ElevatorController(selector, 
-				numFloors, numElevators);
-		SimpleUser person = new SimpleUser(toFloor);
-		controller.startElevators();
 		
+		IElevatorController controller = new ElevatorController(selector, 
+				numFloors, numElevators, elevatorMoveDelay);
+		SimpleUser person = new SimpleUser(toFloor);
+		
+		controller.startElevators();
 		IElevator elevator;
 		
 		// Try an invalid elevator request.
@@ -55,7 +57,12 @@ public class TestElevatorController {
 		} catch (InvalidStateException e) {
 		}
 		
-		elevator.enterElevator(person);
+		try {
+			elevator.enterElevator(fromFloor, person);
+		} catch (WrongFloorException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
 		
 		// Try to make a valid floor request.
 		try {
@@ -69,49 +76,51 @@ public class TestElevatorController {
 				fail("Elevator in use should still be occupied");
 			}
 		}
-		elevator.leaveElevator(person);
+		try {
+			elevator.leaveElevator(toFloor, person);
+		} catch (WrongFloorException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		assertEquals(elevator.isOccupied(), false);
 		controller.stopElevators();
 	}
 	
 	@Test
 	public void testManyElevatorsAndFloors() {
+		// Parameters
 		int numFloors = 100;
-		int numElevators = 10;
-		int numRequests = 100; // Number of simultaneous requests
-		int waitTimeMilli = 5000; // How long to wait for requests to be fulfilled.
-		IElevatorSelector selector = new RandomSelector();
+		int numElevators = 6;
+		int numRequests = 200; // Number of requests to make.
+		int waitTime = 10000; // Milliseconds to wait for requests to be fulfilled.
+		int maxRequestDelay = 10; // Max number of milliseconds to delay between requests.
+		int elevatorMoveDelay = 10; // Number of milliseconds to delay an elevator between switching floors.
+		IElevatorSelector selector = new NearestSelector(); // Selection algorithm to test.
 		
-		IElevatorController controller = new ElevatorController(selector, numFloors, numElevators);
+		IElevatorController controller = new ElevatorController(
+				selector, numFloors, numElevators, elevatorMoveDelay);
 		PersonSimulator[] people = new PersonSimulator[numRequests];
 		Thread[] peopleThreads = new Thread[numRequests];
 		
 		controller.startElevators();
 		
+		// Spawn request threads with a random delay between 0 and maxRequestDelay.
 		for(int i = 0; i < numRequests; i++){
 			people[i] = new PersonSimulator(numFloors, controller);
 			peopleThreads[i] = new Thread(people[i]);
 			peopleThreads[i].start();
 			try {
-				Thread.sleep(new Random().nextInt(50));
+				Thread.sleep(new Random().nextInt(maxRequestDelay));
 			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				fail("Test thread was unexpectedly interrupted.");
 			}
 		}
 		
+		// Wait for the simulation to handle all of the requests.
 		try {
-			Thread.sleep(waitTimeMilli);
+			Thread.sleep(waitTime);
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-
-		for(PersonSimulator p : people){
-			if(!p.isServiced()){
-				fail("An elevator usage was not completed after " + 
-						Double.toString(waitTimeMilli/1000.0) + " seconds.");
-			}
+			fail("Test thread was unexpectedly interrupted.");
 		}
 		
 		controller.stopElevators();
@@ -122,18 +131,24 @@ public class TestElevatorController {
 		int elevatorMoves = controller.getTotalElevatorMoves();
 		double serviceTimeMax = 0;
 		double serviceTimeTotal = 0;
+		int numServiced = 0;
 		for(PersonSimulator p : people){
-			double serviceTime = p.getServiceTime();
-			serviceTimeTotal += serviceTime;
-			if(serviceTime > serviceTimeMax){
-				serviceTimeMax = serviceTime;
+			if(p.isServiced()){
+				numServiced++;
+				double serviceTime = p.getServiceTime();
+				serviceTimeTotal += serviceTime;
+				if(serviceTime > serviceTimeMax){
+					serviceTimeMax = serviceTime;
+				}
 			}
 		}
 		double avgServiceTime = serviceTimeTotal/(people.length);
 		System.out.println("----- ELEVATOR PROFILE -----");
 		System.out.println("Number of elevator moves: " + Integer.toString(elevatorMoves));
-		System.out.println("Maximum service time: " + Double.toString(serviceTimeMax));
-		System.out.println("Average service time: " + Double.toString(avgServiceTime));
+		System.out.println("Percent of requests serviced: " + 
+				Double.toString(100.0*((double)numServiced/people.length)) + "%");
+		System.out.println("Maximum service time (excluding unserviced): " + Double.toString(serviceTimeMax));
+		System.out.println("Average service time (excluding unserviced): " + Double.toString(avgServiceTime));
 		System.out.println("----- ---------------- -----");
 	}
 	

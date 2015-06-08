@@ -3,13 +3,14 @@ package emery_fertitta.luke.project;
 
 public interface IElevator {
     /**
-     * <p> Requests the Elevator to move to a certain floor. 
+     * Requests the Elevator to move to a certain floor. 
      * This method imitates pressing a button inside the
      * elevator. Therefore, it should not move the Elevator immediately
-     * but just register the request. </p>
+     * but just register the request.
      * 
-     * <p> This method throws an InvalidStateException if the Elevator is NOT occupied.
-     * Use enterElevator() before calling floor requests. </p>
+     * @param floor Desired destination floor.
+     * @throws InvalidStateException if the elevator is NOT occupied. Use enterElevator() before
+     * making a request
      */
     public void requestFloor(int floor) throws InvalidStateException;
     
@@ -32,13 +33,13 @@ public interface IElevator {
      * Add the user to the list of users occupying the elevator.
      * @param user A person who called the elevator.
      */
-    public void enterElevator(IElevatorUser user);
+    public void enterElevator(int fromFloor, IElevatorUser user) throws WrongFloorException;
     
     /**
      * Remove the user from the list of users occupying the elevator.
      * @param user A person inside the elevator.
      */
-    public void leaveElevator(IElevatorUser user);
+    public void leaveElevator(int toFloor, IElevatorUser user) throws WrongFloorException;
     
     /**
      * For profiling.

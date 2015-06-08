@@ -9,14 +9,9 @@ public class Elevator implements IElevator, Runnable {
 	 */
 	public static final int MIN_FLOOR = 0;
 	
-	/**
-	 * Delay time in milliseconds to simulate time for an elevator to move.
-	 */
-	public static final int MOVE_TIME = 10;
-	
 	public enum Direction { UP, DOWN, IDLE };
 	
-	public Elevator(int numFloors, int startFloor) {
+	public Elevator(int numFloors, int startFloor, int moveDelay) {
 		// Initialize with no destinations.
 		destinations = new boolean[numFloors];
 		for(int i = 0; i < numFloors; i++){
@@ -32,7 +27,16 @@ public class Elevator implements IElevator, Runnable {
 		
 		users = new ArrayList<IElevatorUser>();
 		
+		this.moveDelay = moveDelay;
 		movesMade = 0;
+	}
+	
+	/**
+	 * @return the basic state information of the elevator at time of calling.
+	 */
+	public synchronized ElevatorState getState(){
+		return new ElevatorState(currentFloor, users.size(),
+				direction, Arrays.copyOf(destinations, destinations.length));
 	}
 	
 	public int getMovesMade(){
@@ -73,12 +77,18 @@ public class Elevator implements IElevator, Runnable {
 	}
 
 	@Override
-	public synchronized void enterElevator(IElevatorUser user) {
+	public synchronized void enterElevator(int fromFloor, IElevatorUser user) throws WrongFloorException {
+		if(currentFloor != fromFloor){
+			throw new WrongFloorException();
+		}
 		users.add(user);
 	}
 
 	@Override
-	public synchronized void leaveElevator(IElevatorUser user) {
+	public synchronized void leaveElevator(int toFloor, IElevatorUser user) throws WrongFloorException{
+		if(currentFloor != toFloor){
+			throw new WrongFloorException();
+		}
 		users.remove(user);
 	}
 	
@@ -121,10 +131,15 @@ public class Elevator implements IElevator, Runnable {
 	@Override
 	public void run(){
 		while(!Thread.interrupted()){
-			
+			/* 
+			 * TODO: This floor switching algorithm could potentially differ. 
+			 * Consider moving to strategy interface.
+			 */
 			// Switch directions if necessary
 			if((direction == Direction.UP) && (maxDestination == currentFloor)){
-				maxDestination = MIN_FLOOR - 1;
+				// Reached highest destination going up, so we go down or idle.
+				
+				maxDestination = MIN_FLOOR - 1; // Set to no max.
 				if(minDestination < currentFloor){
 					direction = Direction.DOWN;
 				}
@@ -133,7 +148,9 @@ public class Elevator implements IElevator, Runnable {
 				}
 			}
 			else if((direction == Direction.DOWN) && (minDestination == currentFloor)){
-				minDestination = destinations.length;
+				// Reached lowest destination going down, so we go up or idle.
+				
+				minDestination = destinations.length; // Set to no min.
 				if(maxDestination > currentFloor){
 					direction = Direction.UP;
 				}
@@ -142,9 +159,12 @@ public class Elevator implements IElevator, Runnable {
 				}
 			}
 			else{
+				// Currently idling, determine if there are any destinations.
+				
 				boolean destinationsBelow = minDestination < currentFloor;
 				boolean destinationsAbove = maxDestination > currentFloor;
 				if(destinationsBelow && destinationsAbove){
+					// Have work to do above and below, choose closest.
 					int downDistance = currentFloor - minDestination;
 					int upDistance = maxDestination - currentFloor;
 					if(upDistance < downDistance){
@@ -161,6 +181,15 @@ public class Elevator implements IElevator, Runnable {
 					direction = Direction.UP;
 				}
 			}
+			
+			try {
+				// Simulate delay between moving floors.
+				Thread.sleep(moveDelay);
+			} catch (InterruptedException e) {
+				// Restore interrupted status and exit.
+				Thread.currentThread().interrupt();
+				return;
+			}
 
 			// Move the elevator
 			if(direction == Direction.UP){
@@ -173,19 +202,8 @@ public class Elevator implements IElevator, Runnable {
 			}
 			destinations[currentFloor] = false;
 			notifyUsers();
-			
-			try {
-				Thread.sleep(MOVE_TIME);
-			} catch (InterruptedException e) {
-				return;
-			}
 		}
 		
-	}
-
-	public ElevatorState getState(){
-		return new ElevatorState(currentFloor, users.size(),
-				direction, Arrays.copyOf(destinations, destinations.length));
 	}
 	
 	/**
@@ -204,6 +222,11 @@ public class Elevator implements IElevator, Runnable {
 	 * below the elevator's current floor. </p>
 	 */
 	private int minDestination;
+	
+	/**
+	 * Delay time in milliseconds to simulate time for an elevator to move.
+	 */
+	private int moveDelay;
 	private int currentFloor;
 	private ArrayList<IElevatorUser> users;
 	private boolean[] destinations;

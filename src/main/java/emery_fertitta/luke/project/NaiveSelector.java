@@ -1,14 +1,12 @@
 package emery_fertitta.luke.project;
 
-// TODO: Temporary class. Consider removal after better implementations.
 /**
- * Always selects the first elevator.
+ * Only use the first elevator.
  */
 public class NaiveSelector implements IElevatorSelector {
 
 	@Override
-	public int selectElevator(int fromFloor, ElevatorState[] elevators) {
-		// TODO Auto-generated method stub
+	public int selectElevator(int fromFloor, int direction, ElevatorState[] elevators) {
 		return 0;
 	}
 

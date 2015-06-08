@@ -4,14 +4,14 @@ public class ElevatorController implements IElevatorController {
 
 
 	public ElevatorController(IElevatorSelector selector, int numFloors,
-			int numElevators){
+			int numElevators, int moveDelay){
 		this.minFloor = Elevator.MIN_FLOOR;
 		this.maxFloor = Elevator.MIN_FLOOR + numFloors;
 		this.selector = selector;
 		this.elevators = new Elevator[numElevators];
 		this.elevatorThreads = new Thread[numElevators];
 		for(int i = 0; i < numElevators; i++){
-			elevators[i] = new Elevator(numFloors, minFloor);
+			elevators[i] = new Elevator(numFloors, minFloor, moveDelay);
 			elevatorThreads[i] = new Thread(elevators[i]);
 		}
 	}
@@ -30,21 +30,22 @@ public class ElevatorController implements IElevatorController {
 				((fromFloor == maxFloor) && (direction > 0))){
 			throw new InvalidRequestException();
 		}
-
-		int selectedIndex =  selector.selectElevator(fromFloor, getElevatorStates());
-		elevators[selectedIndex].addDestination(fromFloor);
-		return elevators[selectedIndex];
-	}
-
-	
-	private ElevatorState[] getElevatorStates(){
+		
+		// Get the elevator states and pass to the selection algorithm.
 		ElevatorState[] states = new ElevatorState[elevators.length];
 		for(int i = 0; i < elevators.length; i++){
 			states[i] = elevators[i].getState();
 		}
-		return states;
+		int selectedIndex =  selector.selectElevator(fromFloor, direction, states);
+		
+		// Send the elevator to that floor.
+		elevators[selectedIndex].addDestination(fromFloor);
+		// TODO: Replace spin wait.
+		while(elevators[selectedIndex].getCurrentFloor() != fromFloor){
+			
+		}
+		return elevators[selectedIndex];
 	}
-
 
 	@Override
 	public void startElevators() {

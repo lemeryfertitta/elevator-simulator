@@ -3,7 +3,6 @@ package emery_fertitta.luke.project;
 /**
  * The minimal information about the state of an elevator
  * for making the decision of which elevator to send to an elevator call.
- *
  */
 public class ElevatorState {
 	private int currentFloor;
