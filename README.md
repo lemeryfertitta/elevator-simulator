@@ -1,39 +1,31 @@
- # Locus Energy Coding Challenge
+# Locus Energy Coding Challenge Solution
 
-This is a very basic scaffold project for you to work in for the elevator simulator assignment.
+This is my solution to the Locus Energy Coding challenge, which I started on 2015-06-05 and submitted on 2015-06-08.
 
-## Instructions
+## Approach
 
-Write an elevator simulator system that runs multiple elevators in a building. Create a test where you run this simulator for a building with 100 floors and 6 elevators. Come up with some creative ways of testing your system (i.e. create more requests than elevators, etc).
+This solution is heavily based upon a concurrent implementation of the elevators. Once the controller starts the simulation, elevators will move concurrently, with a specified delay between each time the elevator decides to move up, down, or stay on the same floor. Users may call an elevator via the controller. The controller then decides which elevator shoud service the user's request, and the user is added to the list of people that the elevator notifies when it switches floors. Users may then attempt to enter the elevator, request a floor, and exit the elevator at the appropriate times. 
 
-While we know there are many college project implementations of elevator simulators, this assignment allows for a variety of solutions to a real-world problem.  Your solution will be reviewed by the engineers you would be working with if you joined Locus Energy.  We are interested in seeing your real-world design, coding, and testing skills, along with workflow interaction with git.
+## Future
 
-The following interfaces are provided to you as a suggestion (they are also located in the src directory of this repo along with Javadoc). You are free to implement them or come up with your own.
+Some additional features that would improve the simulator: 
 
-    public interface ElevatorControler {
-        Elevator callElevator(int fromFloor, int direction);
-    }
-    
-    public interface Elevator {
-        void requestFloor(int floor);
-        boolean isBusy();
-        int currentFloor();
-    }
+- Opening and closing of elevator doors.
+- Smarter notification for users that are waiting on or inside an elevator.
+- Handling floor requests that are not in the direction of travel.
+- Continuous elevator travel (i.e. implemnting basic physics), instead of the more artifical Thread.sleep() delay.
+- Allow for various algorithms to dictate elevator movement instead of only selection.
+- Improve the selection and movement algorithms.
 
+## Using this solution
 
+The solution can be built with [maven][maven].  
 
-## Using this scaffold
+    mvn compile      
+    mvn test-compile 
+    mvn test         
 
-This scaffold is provided to help you (and us) build your homework code. 
-We've included a `pom.xml`, which is a file used by [maven][maven] to build the project and run other commands.   It also contains information on downloading dependent jars needed by your project.  This one contains JUnit, EasyMock and Log4J already, but feel free to change it as you see fit.
-
-    mvn compile      # compiles your code in src/main/java
-    mvn test-compile # compile test code in src/test/java
-    mvn test         # run tests in src/test/java for files named Test*.java
+The current set of JUnit tests has basic functionality tests, as well as three runs of a 100 floor, 6 elevator building to test the three selection algorithms that I have included.
 
 
 [maven]:http://maven.apache.org/
-
-## Submission
-
-Please clone the repository and deliver your solution in a separate repository (preferably your own). _Do not submit your solution via pull request to this repository._ If you are unfamiliar with GitHub, here is a quick introduction: https://guides.github.com/activities/hello-world/. As an alternative, you can deliver your solution via email in an archive format of your choice, including all project files. The project is due within 1 calendar week.
