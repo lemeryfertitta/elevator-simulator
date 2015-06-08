@@ -26,16 +26,16 @@ public class ElevatorTest {
 		IElevatorUser user = new IElevatorUser() {
 			@Override
 			public void update(IElevator elevator) {
-				assertEquals(fromFloor, elevator.getCurrentFloor());
+				assertEquals(0, elevator.getCurrentFloor());
 				assertEquals(true, elevator.isOccupied());
 				try {
-					elevator.leaveElevator(toFloor + 1, this);
+					elevator.leaveElevator(2, this);
 					fail("Invalid floor should throw an exception. ");
 				} catch (WrongFloorException e) {
 				}
 				
 				try {
-					elevator.leaveElevator(fromFloor, this);
+					elevator.leaveElevator(0, this);
 				} catch (WrongFloorException e) {
 					fail("Elevator changed floors for no reason.");
 				}
