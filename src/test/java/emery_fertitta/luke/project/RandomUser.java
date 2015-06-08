@@ -17,6 +17,7 @@ public class RandomUser implements IElevatorUser {
 		fromFloor = r.nextInt(numFloors);
 		toFloor = r.nextInt(numFloors);
 		serviced = false;
+		waiting = true;
 		int direction = toFloor - fromFloor;
 		if((direction == 0) && (fromFloor == 0)){
 			// To prevent a down request on the bottom floor.
@@ -45,13 +46,18 @@ public class RandomUser implements IElevatorUser {
 	@Override
 	public void update(IElevator elevator){
 		int currentFloor = elevator.getCurrentFloor();
-		
 		if((waiting) && (currentFloor == fromFloor)){
 			// Requested elevator has reached the floor we are waiting on.
+			waiting = false;
 			try {
 				elevator.enterElevator(currentFloor, this);
+				
 			} catch (WrongFloorException e) {
-				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			try {
+				elevator.requestFloor(toFloor);
+			} catch (InvalidStateException e) {
 				e.printStackTrace();
 			}
 		}

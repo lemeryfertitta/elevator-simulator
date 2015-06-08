@@ -1,7 +1,7 @@
 package emery_fertitta.luke.project;
 
 
-public interface IElevator {
+public interface IElevator extends Runnable{
     /**
      * Requests the Elevator to move to a certain floor. 
      * This method imitates pressing a button inside the

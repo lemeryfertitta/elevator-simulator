@@ -7,6 +7,7 @@ package emery_fertitta.luke.project;
  * that the elevator will always go to the top or bottom floor before switching 
  * directions.
  */
+// TODO: This algorithm is greatly hindered by the fact that it doesn't pay attention to direction.
 public class NearestSelector implements IElevatorSelector {
 
 	@Override

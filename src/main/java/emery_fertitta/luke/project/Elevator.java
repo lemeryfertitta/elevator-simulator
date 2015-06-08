@@ -96,7 +96,6 @@ public class Elevator implements IElevator, Runnable {
 		}
 		requesters.remove(user);
 		occupants.add(user);
-		System.out.println(occupants.size());
 	}
 
 	@Override
